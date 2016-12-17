@@ -12,27 +12,35 @@ local SBatchNorm = nn.SpatialBatchNormalization
 classes = { 'cla', 'gac', 'org', 'sax', 'vio', 'cel', 'flu', 'gel', 'pia', 'tru', 'voi' }
 model:add(nn.Reshape(1, 20, 130))
 model:add(Convolution(1, 32, 3, 3, 1, 1, 1, 1))
+model:add(Convolution(32, 32, 3, 3, 1, 1, 1, 1))
+
 model:add(SBatchNorm(32))
 model:add(Relu())
-model:add(Max(2, 2, 2, 2))
+model:add(Max(3, 3, 2, 2))
 model:add(Convolution(32, 64, 3, 3, 1, 1, 1, 1))
+model:add(Convolution(64, 64, 3, 3, 1, 1, 1, 1))
+
 model:add(SBatchNorm(64))
 
 model:add(Dropout(0.5))
 model:add(Relu())
-model:add(Max(2, 2, 2, 2))
+model:add(Max(3, 3, 2, 2))
 model:add(Convolution(64, 128, 3, 3, 1, 1, 1, 1))
+model:add(Convolution(128, 128, 3, 3, 1, 1, 1, 1))
+
 model:add(SBatchNorm(128))
 
 model:add(Dropout(0.5))
 model:add(Relu())
-model:add(Max(2, 2, 2, 2))
+model:add(Max(3, 3, 2, 2))
 model:add(Convolution(128, 256, 3, 3, 1, 1, 1, 1))
+model:add(Convolution(256, 256, 3, 3, 1, 1, 1, 1))
+
 model:add(SBatchNorm(256))
 
 model:add(Dropout(0.5))
 model:add(Relu())
-model:add(Max(2, 2, 2, 2))
+model:add(Max(3, 3, 2, 2))
 
 model:add(View(1 * 256 * 1 * 8))
 model:add(Dropout(0.5))

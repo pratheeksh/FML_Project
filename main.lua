@@ -114,7 +114,6 @@ end
 function getIterator(dataset)
 
     return tnt.DatasetIterator {
-        --	dataset =  tnt.ShuffleDataset{
         dataset = tnt.BatchDataset {
             batchsize = opt.batchsize,
             dataset = dataset
@@ -122,7 +121,7 @@ function getIterator(dataset)
     }
 end
 
-
+print (tablelength(trainData))
 trainDataset = tnt.SplitDataset {
     partitions = { train = 0.9, val = 0.1 },
     initialpartition = 'train',
@@ -193,9 +192,9 @@ engine.hooks.onForwardCriterion = function(state)
     clerr:add(state.network.output, state.sample.target)
     if opt.verbose == true then
         print(string.format("%s Batch: %d/%d; avg. loss: %2.4f; avg. error: %2.4f",
-            mode, batch, tablelength(state.iterator.dataset), meter:value())) -- , clerr:value{k = 1}))
+            mode, batch, state.iterator.dataset:size(), meter:value())) -- , clerr:value{k = 1}))
     else
-        xlua.progress(batch, tablelength(state.iterator.dataset))
+        xlua.progress(batch, state.iterator.dataset:size())
     end
     batch = batch + 1 -- batch increment has to happen here to work for train, val and test.
     timer:incUnit()
@@ -214,13 +213,13 @@ while epoch <= opt.nEpochs do
         network = model,
         criterion = criterion,
         iterator = getIterator(trainDataset),
-        optimMethod = optim.adam,
+        optimMethod = optim.sgd,
         maxepoch = 1,
         config = {
             learningRate = opt.LR,
-            --[[momentum = opt.momentum,
+            momentum = opt.momentum,
 		learningRateDecay = .01,
-		weightDecay = .001--]]
+		weightDecay = .001
         }
     }
 
@@ -246,7 +245,7 @@ engine.hooks.onForward = function(state)
     for i = 1, pred:size(1) do
         submission:write(string.format("%05d,%d\n", fileNames[i][1], pred[i][1]))
     end
-    xlua.progress(batch, tablesize(state.iterator.dataset))
+    xlua.progress(batch, state.iterator.dataset:size())
     batch = batch + 1
 end
 

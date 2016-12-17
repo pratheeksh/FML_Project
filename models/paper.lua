@@ -32,7 +32,7 @@ model:add(SBatchNorm(128))
 
 model:add(Dropout(0.25))
 model:add(Relu())
-model:add(Max(3, 3, 1, 1))
+model:add(Max(3, 3, 2, 2))
 model:add(Convolution(128, 256, 3, 3, 1, 1, 1, 1))
 model:add(Convolution(256, 256, 3, 3, 1, 1, 1, 1))
 
@@ -40,11 +40,11 @@ model:add(SBatchNorm(256))
 
 model:add(Dropout(0.25))
 model:add(Relu())
-model:add(Max(3, 3, 1, 1))
+model:add(Max(3, 3, 2, 2))
 
-model:add(View(1 * 256 * 12 * 122))
+model:add(View(1 * 256 * 3 * 30))
 model:add(Dropout(0.25))
-model:add(Linear(1 * 256 * 12 * 122, 1600))
+model:add(Linear(1 * 256 * 3 * 30, 1600))
 model:add(Relu())
 model:add(Dropout(0.25))
 model:add(Linear(1600, 64))

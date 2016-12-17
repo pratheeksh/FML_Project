@@ -78,7 +78,31 @@ function getTrainSample(dataset, idx)
 end
 
 function getTrainLabel(dataset, idx)
-    return dataset[idx][2]
+    label = dataset[idx][2]
+    if label == 'cla' then
+        mattoload = 1
+    elseif label == 'gac' then
+        mattoload = 2
+    elseif label == 'org' then
+        mattoload = 3
+    elseif label == 'sax' then
+        mattoload = 4
+    elseif label == 'vio' then
+        mattoload = 5
+    elseif label == 'cel' then
+        mattoload = 6
+    elseif label == 'flu' then
+        mattoload = 7
+    elseif label == 'gel' then
+        mattoload = 8
+    elseif label == 'pia' then
+        mattoload = 9
+    elseif label == 'tru' then
+        mattoload = 10
+    else
+        mattoload = 11
+    end
+ return torch.LongTensor{mattoload}
 end
 
 function getTestSample(dataset, idx)
@@ -157,21 +181,21 @@ local target = torch.CudaTensor()
 engine.hooks.onSample = function(state)
     input:resize(state.sample.input:size()):copy(state.sample.input)
     state.sample.input = input
-   -- if state.sample.target then
-     --   target:resize(state.sample.target:size()):copy(state.sample.target)
+    if state.sample.target then
+       target:resize(state.sample.target:size()):copy(state.sample.target)
         state.sample.target = target
-   -- end
+    end
 end
 
 
 engine.hooks.onForwardCriterion = function(state)
     meter:add(state.criterion.output)
-    -- clerr:add(state.network.output, state.sample.target)
+    clerr:add(state.network.output, state.sample.target)
     if opt.verbose == true then
         print(string.format("%s Batch: %d/%d; avg. loss: %2.4f; avg. error: %2.4f",
-            mode, batch, tablesize(state.iterator.dataset), meter:value())) -- , clerr:value{k = 1}))
+            mode, batch, tablelength(state.iterator.dataset), meter:value())) -- , clerr:value{k = 1}))
     else
-        xlua.progress(batch, tablesize(state.iterator.dataset))
+        xlua.progress(batch, tablelength(state.iterator.dataset))
     end
     batch = batch + 1 -- batch increment has to happen here to work for train, val and test.
     timer:incUnit()

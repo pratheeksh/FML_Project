@@ -12,13 +12,13 @@ local SBatchNorm = nn.SpatialBatchNormalization
 classes = { 'cla', 'gac', 'org', 'sax', 'vio', 'cel', 'flu', 'gel', 'pia', 'tru', 'voi' }
 model:add(nn.Reshape(1, 20, 130))
 model:add(Convolution(1, 32, 3, 3, 1, 1, 1, 1))
-model:add(Convolution(32, 32, 3, 3, 1, 1, 1, 1))
+--model:add(Convolution(32, 32, 3, 3, 1, 1, 1, 1))
 
 model:add(SBatchNorm(32))
 model:add(Relu())
 model:add(Max(3, 3, 1, 1))
 model:add(Convolution(32, 64, 3, 3, 1, 1, 1, 1))
-model:add(Convolution(64, 64, 3, 3, 1, 1, 1, 1))
+--model:add(Convolution(64, 64, 3, 3, 1, 1, 1, 1))
 
 model:add(SBatchNorm(64))
 

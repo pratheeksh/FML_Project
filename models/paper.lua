@@ -7,20 +7,29 @@ local View = nn.View
 local Linear = nn.Linear
 local Dropout = nn.Dropout
 local model = nn.Sequential()
+local SBatchNorm = nn.SpatialBatchNormalization
+
 classes = { 'cla', 'gac', 'org', 'sax', 'vio', 'cel', 'flu', 'gel', 'pia', 'tru', 'voi' }
 model:add(nn.Reshape(1, 20, 130))
 model:add(Convolution(1, 32, 3, 3, 1, 1, 1, 1))
+model:add(SBatchNorm(32))
 model:add(Relu())
 model:add(Max(2, 2, 2, 2))
 model:add(Convolution(32, 64, 3, 3, 1, 1, 1, 1))
+model:add(SBatchNorm(64))
+
 model:add(Dropout(0.5))
 model:add(Relu())
 model:add(Max(2, 2, 2, 2))
 model:add(Convolution(64, 128, 3, 3, 1, 1, 1, 1))
+model:add(SBatchNorm(128))
+
 model:add(Dropout(0.5))
 model:add(Relu())
 model:add(Max(2, 2, 2, 2))
 model:add(Convolution(128, 256, 3, 3, 1, 1, 1, 1))
+model:add(SBatchNorm(256))
+
 model:add(Dropout(0.5))
 model:add(Relu())
 model:add(Max(2, 2, 2, 2))

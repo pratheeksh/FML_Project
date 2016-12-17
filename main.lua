@@ -26,41 +26,23 @@ require 'cunn'
 local trainData = torch.load('train.t7')
 -- local testData = torch.load(DATA_PATH..'test.t7')
 
+local  classes = {'cla', 'gac', 'org', 'sax', 'vio', 'cel', 'flu', 'gel', 'pia', 'tru', 'voi'}
 
 local tnt = require 'torchnet'
 local image = require 'image'
 local optParser = require 'opts'
 local opt = optParser.parse(arg)
 
-local WIDTH, HEIGHT = 320, 140
+local WIDTH, HEIGHT = 20, 130
 local DATA_PATH = (opt.data ~= '' and opt.data or './data_/')
 
 torch.setdefaulttensortype('torch.DoubleTensor')
 
 torch.manualSeed(opt.manualSeed)
-
-function resize(img)
-    modimg = img[{ {}, { 200, 480 }, {} }]
-    return image.scale(modimg, WIDTH, HEIGHT)
-end
-
-function yuv(img)
-    return image.rgb2yuv(img)
-end
-
-function norm(img)
-    new = img / 255
-    new = new - torch.mean(new)
-    return new
-end
-
-function transformInput(inp)
-    f = tnt.transform.compose {
-        [1] = resize,
-        [2] = yuv,
-        [3] = norm
-    }
-    return f(inp)
+function tablelength(T)
+  local count = 0
+  for _ in pairs(T) do count = count + 1 end
+  return count
 end
 
 function getTrainSample(dataset, idx)
@@ -91,8 +73,7 @@ function getTrainSample(dataset, idx)
     else
         mattoload = voi
     end
-    print(label, filename, mattoload[filename])
-
+ --   print(label, filename, mattoload[filename])
     return mattoload[filename]
 end
 
@@ -123,7 +104,7 @@ trainDataset = tnt.SplitDataset {
     initialpartition = 'train',
     dataset = tnt.ShuffleDataset {
         dataset = tnt.ListDataset {
-            list = torch.range(1, 6000):long(),
+            list = torch.range(1, tablelength(trainData)):long(),
             load = function(idx)
                 return {
                     input = getTrainSample(trainData, idx),
@@ -158,7 +139,6 @@ model:cuda()
 criterion:cuda()
 
 -- print(model)
-
 engine.hooks.onStart = function(state)
     meter:reset()
     clerr:reset()
@@ -177,10 +157,10 @@ local target = torch.CudaTensor()
 engine.hooks.onSample = function(state)
     input:resize(state.sample.input:size()):copy(state.sample.input)
     state.sample.input = input
-    if state.sample.target then
-        target:resize(state.sample.target:size()):copy(state.sample.target)
+   -- if state.sample.target then
+     --   target:resize(state.sample.target:size()):copy(state.sample.target)
         state.sample.target = target
-    end
+   -- end
 end
 
 
@@ -189,9 +169,9 @@ engine.hooks.onForwardCriterion = function(state)
     -- clerr:add(state.network.output, state.sample.target)
     if opt.verbose == true then
         print(string.format("%s Batch: %d/%d; avg. loss: %2.4f; avg. error: %2.4f",
-            mode, batch, state.iterator.dataset:size(), meter:value())) -- , clerr:value{k = 1}))
+            mode, batch, tablesize(state.iterator.dataset), meter:value())) -- , clerr:value{k = 1}))
     else
-        xlua.progress(batch, state.iterator.dataset:size())
+        xlua.progress(batch, tablesize(state.iterator.dataset))
     end
     batch = batch + 1 -- batch increment has to happen here to work for train, val and test.
     timer:incUnit()
@@ -242,7 +222,7 @@ engine.hooks.onForward = function(state)
     for i = 1, pred:size(1) do
         submission:write(string.format("%05d,%d\n", fileNames[i][1], pred[i][1]))
     end
-    xlua.progress(batch, state.iterator.dataset:size())
+    xlua.progress(batch, tablesize(state.iterator.dataset))
     batch = batch + 1
 end
 

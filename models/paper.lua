@@ -26,7 +26,7 @@ model:add(Dropout(0.25))
 model:add(Relu())
 model:add(Max(3, 3, 1, 1))
 model:add(Convolution(64, 128, 3, 3, 1, 1, 1, 1))
-model:add(Convolution(128, 128, 3, 3, 1, 1, 1, 1))
+--model:add(Convolution(128, 128, 3, 3, 1, 1, 1, 1))
 
 model:add(SBatchNorm(128))
 
@@ -34,7 +34,7 @@ model:add(Dropout(0.25))
 model:add(Relu())
 model:add(Max(3, 3, 1, 1))
 model:add(Convolution(128, 256, 3, 3, 1, 1, 1, 1))
-model:add(Convolution(256, 256, 3, 3, 1, 1, 1, 1))
+--model:add(Convolution(256, 256, 3, 3, 1, 1, 1, 1))
 
 model:add(SBatchNorm(256))
 

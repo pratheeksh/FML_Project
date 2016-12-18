@@ -1,13 +1,13 @@
 require 'torch'
 require 'cutorch'
-require 'optim'
+optim = require 'optim'
 require 'os'
 require 'optim'
 require 'xlua'
 matio = require 'matio'
+--local criterion =  nn.MultiLabelSoftMarginCriterion()
 names = {}
 matio.use_lua_strings = true
-
 data = io.open("labels.csv", 'r')
 cla = matio.load('../data/matfiles/cla.mat')
 gac = matio.load('../data/matfiles/gac.mat')
@@ -24,10 +24,6 @@ voi = matio.load('../data/matfiles/voi.mat')
 require 'cunn'
 
 local trainData = torch.load('train.t7')
--- local testData = torch.load(DATA_PATH..'test.t7')
-
-local  classes = {'cla', 'gac', 'org', 'sax', 'vio', 'cel', 'flu', 'gel', 'pia', 'tru', 'voi'}
-
 local tnt = require 'torchnet'
 local image = require 'image'
 local optParser = require 'opts'
@@ -49,7 +45,6 @@ function getTrainSample(dataset, idx)
     filename = dataset[idx][1]
     label = dataset[idx][2]
     --- 'cla', 'gac', 'org', 'sax', 'vio', 'cel', 'flu', 'gel', 'pia', 'tru', 'voi'
-
     if label == 'cla' then
         mattoload = cla
     elseif label == 'gac' then
@@ -79,6 +74,7 @@ end
 
 function getTrainLabel(dataset, idx)
     label = dataset[idx][2]
+    labelTensor = torch.Tensor(11):fill(0)
     if label == 'cla' then
         mattoload = 1
     elseif label == 'gac' then
@@ -102,7 +98,8 @@ function getTrainLabel(dataset, idx)
     else
         mattoload = 11
     end
- return torch.LongTensor{mattoload}
+    labelTensor[{mattoload}] = 1
+return torch.LongTensor{mattoload}
 end
 
 function getTestSample(dataset, idx)
@@ -153,9 +150,9 @@ trainDataset = tnt.SplitDataset {
 local model = require("models/" .. opt.model)
 local engine = tnt.OptimEngine()
 local meter = tnt.AverageValueMeter()
---local criterion = nn.MSECriterion()--nn.CrossEntropyCriterion()
 local criterion = nn.CrossEntropyCriterion()
 local clerr = tnt.ClassErrorMeter { topk = { 1 } }
+--local clerr = tnt.MultiLabelConfusionMeter{k=11}
 local timer = tnt.TimeMeter()
 local batch = 1
 model:cuda()
@@ -174,7 +171,7 @@ engine.hooks.onStart = function(state)
     end
 end
 
-
+local trainAccuracy
 local input = torch.CudaTensor()
 local target = torch.CudaTensor()
 engine.hooks.onSample = function(state)
@@ -189,7 +186,7 @@ end
 
 engine.hooks.onForwardCriterion = function(state)
     meter:add(state.criterion.output)
-    clerr:add(state.network.output, state.sample.target)
+clerr:add(state.network.output, state.sample.target)
     if opt.verbose == true then
         print(string.format("%s Batch: %d/%d; avg. loss: %2.4f; avg. error: %2.4f",
             mode, batch, state.iterator.dataset:size(), meter:value())) -- , clerr:value{k = 1}))
@@ -202,7 +199,7 @@ end
 
 engine.hooks.onEnd = function(state)
     print(string.format("%s: avg. loss: %2.4f; avg. error: %2.4f, time: %2.4f",
-        mode, meter:value(), clerr:value { k = 1 }, timer:value()))
+        mode, meter:value(), clerr:value{k=1}, timer:value()))
 end
 
 local epoch = 1
@@ -218,7 +215,7 @@ while epoch <= opt.nEpochs do
         config = {
             learningRate = opt.LR,
             momentum = opt.momentum,
-		learningRateDecay = .01,
+		learningRateDecay = .000001,
 		weightDecay = .001
         }
     }

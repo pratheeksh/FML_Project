@@ -12,7 +12,7 @@ function string:split(sep)
 end
 
 
-local filePath = 'labels.csv'
+local filePath = 'testcsv.csv'
 
 -- Count number of rows and columns in file
 local i = 0
@@ -48,7 +48,7 @@ value = {}
 csvFile:close()
 
 -- Serialize tensor
-local outputFilePath = 'train.t7'
+local outputFilePath = 'test.t7'
 torch.save(outputFilePath, data)
 
 -- Deserialize tensor object

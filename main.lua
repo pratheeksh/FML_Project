@@ -21,9 +21,11 @@ pia = matio.load('../data/matfiles/pia.mat')
 tru = matio.load('../data/matfiles/tru.mat')
 voi = matio.load('../data/matfiles/voi.mat')
 
+test =  matio.load('../data/matfiles/test.mat')
 require 'cunn'
 
 local trainData = torch.load('train.t7')
+local testData = torch.load('test.t7')
 local tnt = require 'torchnet'
 local image = require 'image'
 local optParser = require 'opts'
@@ -103,9 +105,9 @@ function getTrainLabel(dataset, idx)
 end
 
 function getTestSample(dataset, idx)
-    r = dataset[idx]
-    file = DATA_PATH .. "/test_images/" .. string.format("%05d.ppm", r[1])
-    return transformInput(image.load(file))
+  filename = dataset[idx][1]
+  print(test[filename])
+	return test[filename]
 end
 
 function getIterator(dataset)
@@ -135,16 +137,16 @@ trainDataset = tnt.SplitDataset {
     }
 }
 
---[[testDataset = tnt.ListDataset{
-    list = torch.range(1, testData:size(1)):long(),
+testDataset = tnt.ListDataset{
+    list = torch.range(1, tablelength(testData)):long(),
     load = function(idx)
         return {
             input = getTestSample(testData, idx),
-            sampleId = torch.LongTensor{testData[idx][1]}
+            sampleId = getTrainLabel(testData, idx)
         }
     end
 }
-]]
+
 
 
 local model = require("models/" .. opt.model)

@@ -36,9 +36,9 @@ torch.setdefaulttensortype('torch.DoubleTensor')
 
 torch.manualSeed(opt.manualSeed)
 function tablelength(T)
-  local count = 0
-  for _ in pairs(T) do count = count + 1 end
-  return count
+    local count = 0
+    for _ in pairs(T) do count = count + 1 end
+    return count
 end
 
 function getTrainSample(dataset, idx)
@@ -68,7 +68,7 @@ function getTrainSample(dataset, idx)
     else
         mattoload = voi
     end
- --   print(label, filename, mattoload[filename])
+    --   print(label, filename, mattoload[filename])
     return mattoload[filename]
 end
 
@@ -98,8 +98,8 @@ function getTrainLabel(dataset, idx)
     else
         mattoload = 11
     end
-    labelTensor[{mattoload}] = 1
-return torch.LongTensor{mattoload}
+    labelTensor[{ mattoload }] = 1
+    return torch.LongTensor { mattoload }
 end
 
 function getTestSample(dataset, idx)
@@ -118,7 +118,7 @@ function getIterator(dataset)
     }
 end
 
-print (tablelength(trainData))
+print(tablelength(trainData))
 trainDataset = tnt.SplitDataset {
     partitions = { train = 0.9, val = 0.1 },
     initialpartition = 'train',
@@ -178,7 +178,7 @@ engine.hooks.onSample = function(state)
     input:resize(state.sample.input:size()):copy(state.sample.input)
     state.sample.input = input
     if state.sample.target then
-       target:resize(state.sample.target:size()):copy(state.sample.target)
+        target:resize(state.sample.target:size()):copy(state.sample.target)
         state.sample.target = target
     end
 end
@@ -186,7 +186,7 @@ end
 
 engine.hooks.onForwardCriterion = function(state)
     meter:add(state.criterion.output)
-clerr:add(state.network.output, state.sample.target)
+    clerr:add(state.network.output, state.sample.target)
     if opt.verbose == true then
         print(string.format("%s Batch: %d/%d; avg. loss: %2.4f; avg. error: %2.4f",
             mode, batch, state.iterator.dataset:size(), meter:value())) -- , clerr:value{k = 1}))
@@ -199,7 +199,7 @@ end
 
 engine.hooks.onEnd = function(state)
     print(string.format("%s: avg. loss: %2.4f; avg. error: %2.4f, time: %2.4f",
-        mode, meter:value(), clerr:value{k=1}, timer:value()))
+        mode, meter:value(), clerr:value { k = 1 }, timer:value()))
 end
 
 local epoch = 1
@@ -215,8 +215,8 @@ while epoch <= opt.nEpochs do
         config = {
             learningRate = opt.LR,
             momentum = opt.momentum,
-		learningRateDecay = .000001,
-		weightDecay = .001
+            learningRateDecay = .000001,
+            weightDecay = .001
         }
     }
 

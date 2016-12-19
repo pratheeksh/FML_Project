@@ -126,7 +126,7 @@ trainDataset = tnt.SplitDataset {
     initialpartition = 'train',
     dataset = tnt.ShuffleDataset {
         dataset = tnt.ListDataset {
-            list = torch.range(1, tablelength(trainData)):long(),
+            list = torch.range(1, tablelength(trainData)-500):long(),
             load = function(idx)
                 return {
                     input = getTrainSample(trainData, idx),
@@ -138,11 +138,11 @@ trainDataset = tnt.SplitDataset {
 }
 
 testDataset = tnt.ListDataset{
-    list = torch.range(1, tablelength(testData)):long(),
+    list = torch.range(501, tablelength(trainData)):long(),
     load = function(idx)
         return {
-            input = getTestSample(testData, idx),
-            sampleId = getTrainLabel(testData, idx)
+            input = getTestSample(trainData, idx),
+            sampleId = getTrainLabel(trainData, idx)
         }
     end
 }
@@ -231,19 +231,20 @@ while epoch <= opt.nEpochs do
     print('Done with Epoch ' .. tostring(epoch))
     epoch = epoch + 1
 end
-
+torch.save("model.t7", model:clearState())
 local submission = assert(io.open(opt.logDir .. "/submission.csv", "w"))
 submission:write("Filename,ClassId\n")
 batch = 1
 
 
 engine.hooks.onForward = function(state)
-    local fileNames = state.sample.sampleId
+--[[   local fileNames = state.sample.sampleId
     local _, pred = state.network.output:max(2)
     pred = pred - 1
     for i = 1, pred:size(1) do
         submission:write(string.format("%05d,%d\n", fileNames[i][1], pred[i][1]))
-    end
+    end]]--
+   
     xlua.progress(batch, state.iterator.dataset:size())
     batch = batch + 1
 end
@@ -251,10 +252,9 @@ end
 engine.hooks.onEnd = function(state)
     submission:close()
 end
-
 engine:test {
     network = model,
-    iterator = getIterator(testDataset)
+    iterator = getIterator(trainDataset)
 }
 
 print("The End!")

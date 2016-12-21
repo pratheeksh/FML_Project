@@ -1,6 +1,5 @@
 local nn = require 'nn'
 local Convolution = nn.SpatialConvolution
-local Tanh = nn.Tanh
 local Relu = nn.ReLU
 local Max = nn.SpatialMaxPooling
 local View = nn.View

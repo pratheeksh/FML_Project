@@ -1,9 +1,6 @@
 -- Read CSV file
 require('torch')
-local matio = require 'matio'
--- load a single array from file
---'cla', 'gac', 'org', 'sax', 'vio', 'cel', 'flu', 'gel', 'pia', 'tru', 'voi'
--- Split string
+
 function string:split(sep)
   local sep, fields = sep, {}
   local pattern = string.format("([^%s]+)", sep)
@@ -33,10 +30,8 @@ local ROWS = i - 1  -- Minus 1 because of header
 local csvFile = io.open(filePath, 'r')
 local header = csvFile:read()
 
---local data = torch.Tensor(ROWS, COLS)
 local data = {}
 local i = 0
-local mattouse = cla
 for line in csvFile:lines('*l') do
   i = i + 1
   local l = line:split(',')
@@ -52,9 +47,7 @@ value = {}
 	value[2] =  label
 	data[i] = value
 	print (data[i][1], data[i][2])
---	print(data[i][1])
---	print(data[i][2])
---	print(data[i][3])
+
   end
 
 csvFile:close()
@@ -63,9 +56,4 @@ csvFile:close()
 local outputFilePath = 'test.t7'
 torch.save(outputFilePath, data)
 
--- Deserialize tensor object
-local restored_data = torch.load(outputFilePath)
 
--- Make test
---print(data:size())
---print(restored_data:size())

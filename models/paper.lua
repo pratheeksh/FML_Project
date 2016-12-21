@@ -54,6 +54,7 @@ model:add(Linear(64, #classes))
 model:add(nn.Sigmoid())
 
 ---- model:cuda()
+print(model)
 input = torch.Tensor(1, 20, 130)
 out = model:forward(input)
 print(out:size())

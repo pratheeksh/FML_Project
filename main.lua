@@ -76,7 +76,6 @@ end
 
 function getTrainLabel(dataset, idx)
     label = dataset[idx][2]
-    labelTensor = torch.Tensor(11):fill(0)
     if label == 'cla' then
         mattoload = 1
     elseif label == 'gac' then
@@ -100,14 +99,16 @@ function getTrainLabel(dataset, idx)
     else
         mattoload = 11
     end
-    labelTensor[{ mattoload }] = 1
     return torch.LongTensor { mattoload }
 end
 
 function getTestSample(dataset, idx)
   filename = dataset[idx][1]
-  print(test[filename])
-	return test[filename]
+  print (filename)
+	audio  = test[filename]
+  b = audio[{{},{1,130}}]
+    --modimg = img[{{},{200,480},{}}]
+return b
 end
 
 function getIterator(dataset)
@@ -126,7 +127,7 @@ trainDataset = tnt.SplitDataset {
     initialpartition = 'train',
     dataset = tnt.ShuffleDataset {
         dataset = tnt.ListDataset {
-            list = torch.range(1, tablelength(trainData)-500):long(),
+            list = torch.range(1, tablelength(trainData)):long(),
             load = function(idx)
                 return {
                     input = getTrainSample(trainData, idx),
@@ -138,18 +139,18 @@ trainDataset = tnt.SplitDataset {
 }
 
 testDataset = tnt.ListDataset{
-    list = torch.range(501, tablelength(trainData)):long(),
+    list = torch.range(1, tablelength(testData)):long(),
     load = function(idx)
         return {
-            input = getTestSample(trainData, idx),
-            sampleId = getTrainLabel(trainData, idx)
+            input = getTestSample(testData, idx),
+            sampleId =testData[idx][1]
         }
     end
 }
 
 
 
-local model = require("models/" .. opt.model)
+local model = torch.load("model200.t7")
 local engine = tnt.OptimEngine()
 local meter = tnt.AverageValueMeter()
 local criterion = nn.CrossEntropyCriterion()
@@ -205,7 +206,7 @@ engine.hooks.onEnd = function(state)
 end
 
 local epoch = 1
-
+--[[
 while epoch <= opt.nEpochs do
     trainDataset:select('train')
     engine:train {
@@ -217,7 +218,7 @@ while epoch <= opt.nEpochs do
         config = {
             learningRate = opt.LR,
             momentum = opt.momentum,
-            learningRateDecay = .0001,
+            learningRateDecay = .00001,
             weightDecay = .001
         }
     }
@@ -231,19 +232,27 @@ while epoch <= opt.nEpochs do
     print('Done with Epoch ' .. tostring(epoch))
     epoch = epoch + 1
 end
-torch.save("model.t7", model:clearState())
+torch.save("model.t7", model:clearState())i]]--
 local submission = assert(io.open(opt.logDir .. "/submission.csv", "w"))
-submission:write("Filename,ClassId\n")
+submission:write("Filename,ClassId\n") 
 batch = 1
 
 
 engine.hooks.onForward = function(state)
---[[   local fileNames = state.sample.sampleId
-    local _, pred = state.network.output:max(2)
-    pred = pred - 1
+    local fileNames = state.sample.sampleId
+    local pred = state.network.output
+ 
+--    pred = pred - 1
     for i = 1, pred:size(1) do
-        submission:write(string.format("%05d,%d\n", fileNames[i][1], pred[i][1]))
-    end]]--
+        t = pred[i]
+	 local key, max = 1, t[1]
+    for k =1,t:size(1) do
+       if t[k] > max then
+         key, max = k, t[k]
+       end
+    end
+	submission:write(fileNames[i] ..','..string.format("%d\n", key))
+    end
    
     xlua.progress(batch, state.iterator.dataset:size())
     batch = batch + 1
@@ -254,7 +263,7 @@ engine.hooks.onEnd = function(state)
 end
 engine:test {
     network = model,
-    iterator = getIterator(trainDataset)
+    iterator = getIterator(testDataset)
 }
 
 print("The End!")

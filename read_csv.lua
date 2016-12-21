@@ -10,7 +10,11 @@ function string:split(sep)
   self:gsub(pattern, function(substr) fields[#fields + 1] = substr end)
   return fields
 end
-
+function tl(T)
+    local count = 0
+    for _ in pairs(T) do count = count + 1 end
+    return count
+end
 
 local filePath = 'testcsv.csv'
 
@@ -37,9 +41,17 @@ for line in csvFile:lines('*l') do
   i = i + 1
   local l = line:split(',')
 value = {}
-	value[1] = l[1]
-	value[2] = l[2]
+	if tl(l) > 2 then
+		key  = l[1]..','..l[2]
+		label = l[3]
+	else
+		key = l[1]
+		label = l[2]
+	end
+	value[1] = key
+	value[2] =  label
 	data[i] = value
+	print (data[i][1], data[i][2])
 --	print(data[i][1])
 --	print(data[i][2])
 --	print(data[i][3])

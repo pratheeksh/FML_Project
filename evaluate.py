@@ -5,15 +5,15 @@ count = 0
 labeldict = dict()
 
 for l in testdata:
-	label = l.split(',')[-1]
-	labeldict[','.join(l.split(',')[:-1])]= label
+    label = l.split(',')[-1]
+    labeldict[','.join(l.split(',')[:-1])] = label
 for l in submission:
-	label = l.split(',')[-1]
-	label = int(label) - 1
-	key = ','.join(l.split(',')[:-1])
-	if key in labeldict:
-		actual = labeldict[key]
-		if actual.strip() == classes[label]:
-			count += 1
+    label = l.split(',')[-1]
+    label = int(label) - 1
+    key = ','.join(l.split(',')[:-1])
+    if key in labeldict:
+        actual = labeldict[key]
+        if actual.strip() == classes[label]:
+            count += 1
 
-print count, float(count)/len(submission)
+print count, float(count) / len(submission)

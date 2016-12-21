@@ -21,18 +21,15 @@ pia = matio.load('../data/matfiles/pia.mat')
 tru = matio.load('../data/matfiles/tru.mat')
 voi = matio.load('../data/matfiles/voi.mat')
 
-test =  matio.load('../data/matfiles/test.mat')
+test = matio.load('../data/matfiles/test.mat')
 require 'cunn'
 
 local trainData = torch.load('train.t7')
 local testData = torch.load('test.t7')
 local tnt = require 'torchnet'
-local image = require 'image'
 local optParser = require 'opts'
 local opt = optParser.parse(arg)
 
-local WIDTH, HEIGHT = 20, 130
-local DATA_PATH = (opt.data ~= '' and opt.data or './data_/')
 
 torch.setdefaulttensortype('torch.DoubleTensor')
 
@@ -70,7 +67,6 @@ function getTrainSample(dataset, idx)
     else
         mattoload = voi
     end
-    --   print(label, filename, mattoload[filename])
     return mattoload[filename]
 end
 
@@ -103,12 +99,12 @@ function getTrainLabel(dataset, idx)
 end
 
 function getTestSample(dataset, idx)
-  filename = dataset[idx][1]
-  print (filename)
-	audio  = test[filename]
-  b = audio[{{},{1,130}}]
+    filename = dataset[idx][1]
+    print(filename)
+    audio = test[filename]
+    b = audio[{ {}, { 1, 130 } }]
     --modimg = img[{{},{200,480},{}}]
-return b
+    return b
 end
 
 function getIterator(dataset)
@@ -138,12 +134,12 @@ trainDataset = tnt.SplitDataset {
     }
 }
 
-testDataset = tnt.ListDataset{
+testDataset = tnt.ListDataset {
     list = torch.range(1, tablelength(testData)):long(),
     load = function(idx)
         return {
             input = getTestSample(testData, idx),
-            sampleId =testData[idx][1]
+            sampleId = testData[idx][1]
         }
     end
 }
@@ -206,7 +202,7 @@ engine.hooks.onEnd = function(state)
 end
 
 local epoch = 1
---[[
+
 while epoch <= opt.nEpochs do
     trainDataset:select('train')
     engine:train {
@@ -232,28 +228,28 @@ while epoch <= opt.nEpochs do
     print('Done with Epoch ' .. tostring(epoch))
     epoch = epoch + 1
 end
-torch.save("model.t7", model:clearState())i]]--
+torch.save("model.t7", model:clearState())
 local submission = assert(io.open(opt.logDir .. "/submission.csv", "w"))
-submission:write("Filename,ClassId\n") 
+submission:write("Filename,ClassId\n")
 batch = 1
 
 
 engine.hooks.onForward = function(state)
     local fileNames = state.sample.sampleId
     local pred = state.network.output
- 
---    pred = pred - 1
+
+    --    pred = pred - 1
     for i = 1, pred:size(1) do
         t = pred[i]
-	 local key, max = 1, t[1]
-    for k =1,t:size(1) do
-       if t[k] > max then
-         key, max = k, t[k]
-       end
+        local key, max = 1, t[1]
+        for k = 1, t:size(1) do
+            if t[k] > max then
+                key, max = k, t[k]
+            end
+        end
+        submission:write(fileNames[i] .. ',' .. string.format("%d\n", key))
     end
-	submission:write(fileNames[i] ..','..string.format("%d\n", key))
-    end
-   
+
     xlua.progress(batch, state.iterator.dataset:size())
     batch = batch + 1
 end
